@@ -170,3 +170,14 @@ async def test_verificacion_al_ejecutar_aunque_la_tool_estuviera_en_la_lista(orq
 async def test_rag_publico_no_recibe_fragmentos_restringidos(orq):
     res, oculto = orq.rag.retrieve("¿Cuándo es el simulacro del segundo parcial?", niveles_permitidos("publico"))
     assert {r.chunk.nivel for r in res} <= {"publico"} and oculto
+
+
+@con_orq
+async def test_codigo_con_espacios_no_duplica_ni_oculta_solicitudes(orq):
+    por = {t.name: t for t in orq.mcp_tools}
+    args = {"parcial": 1, "causa": "incapacidad médica"}
+    await por["solicitar_supletorio"].run({"codigo": " 2026001", **args})
+    with pytest.raises(Exception, match="Ya existe"):  # el duplicado con otro formato se detecta
+        await por["solicitar_supletorio"].run({"codigo": "2026001", **args})
+    texto = await por["consultar_solicitudes"].run({"codigo": "2026001"})
+    assert '"codigo": "2026001"' in texto and "SUP-2026-001" in texto  # se guardó con el código normalizado

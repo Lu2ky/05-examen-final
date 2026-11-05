@@ -57,6 +57,7 @@ def consultar_notas(codigo: CodigoEstudiante) -> dict[str, Any]:
 
     Una nota null significa que aún no está registrada. Incluye el promedio de los laboratorios.
     """
+    codigo = codigo.strip()
     estudiante = buscar_estudiante(codigo)
     notas = estudiante["notas"]
     laboratorios = notas["laboratorios"]
@@ -72,6 +73,7 @@ def consultar_notas(codigo: CodigoEstudiante) -> dict[str, Any]:
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True))
 def consultar_solicitudes(codigo: CodigoEstudiante) -> list[dict[str, Any]]:
     """Lista las solicitudes de supletorio registradas por un estudiante."""
+    codigo = codigo.strip()
     buscar_estudiante(codigo)
     return [solicitud for solicitud in SOLICITUDES if solicitud["codigo"] == codigo]
 
@@ -89,6 +91,7 @@ def solicitar_supletorio(
 
     Es una ACCIÓN: crea un registro en el sistema académico.
     """
+    codigo = codigo.strip()
     estudiante = buscar_estudiante(codigo)
     if any(s["codigo"] == codigo and s["parcial"] == parcial for s in SOLICITUDES):
         raise ToolError(f"Ya existe una solicitud de supletorio del parcial {parcial} para {codigo}.")
@@ -114,6 +117,7 @@ def registrar_nota(
 
     El control de quién puede llamarla lo hace el asistente (solo el rol docente la recibe).
     """
+    codigo = codigo.strip()
     estudiante = buscar_estudiante(codigo)
     anterior = estudiante["notas"][evaluacion]
     estudiante["notas"][evaluacion] = valor  # en memoria: se pierde al cerrar el servidor
