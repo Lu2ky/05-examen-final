@@ -30,7 +30,6 @@ from asistente.config import load_access_settings
 from asistente.llm.llm_client import LLMError, Message
 from asistente.agente.nucleo import responder
 from asistente.agente.orchestrator import Orchestrator, create_orchestrator
-from asistente.llm.prompts import nombre_desarrollador
 from asistente.seguridad.sesiones import Sesion, SesionStore, usuario_de_telegram
 from asistente.agente.tools import Tool
 
@@ -63,7 +62,7 @@ class AsistenteTelegram:
     # --- comandos ---
     async def start(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text(
-            f"Hola, soy el Asistente del Curso de IA, desarrollado por {nombre_desarrollador()}.\n"
+            f"Hola, soy el Asistente del Curso de IA, desarrollado por José Bohórquez.\n"
             "Puedo responder preguntas públicas del curso. Para información restringida (notas, "
             "material de tu rol) inicia sesión con /login. Usa /ayuda para ver los comandos."
         )
