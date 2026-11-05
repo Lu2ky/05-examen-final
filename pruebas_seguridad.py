@@ -44,17 +44,34 @@ class Caso:
     veneno: str | None = None
 
 
+INTENTOS_429 = 4  # el proveedor limita los tokens por minuto: se reintenta el caso esperando a que se renueve
+ESPERA_429 = 30  # segundos
+
+
+def _estudiante():
+    """El integrante con código de estudiante, sea cual sea el rol que tenga hoy en usuarios.json.
+
+    La suite simula los roles por su cuenta (no hace login), así que no debe depender de que el archivo
+    diga "estudiante" o "docente": se puede ejecutar también mientras se prueba el rol docente.
+    """
+    u = next((u for u in cargar_usuarios() if u.codigo), None)
+    if u is None:
+        raise SystemExit("[pruebas] usuarios.json no tiene ningún usuario con codigo_estudiante.")
+    return u
+
+
 def sesion_de(rol: str) -> Sesion | None:
     if rol == "publico":
         return None
-    u = next((u for u in cargar_usuarios() if u.rol == rol), None)
-    if u is None:  # p. ej. no hay docente en usuarios.json: sesión sintética, solo existe en esta suite
-        return Sesion(telegram_user_id=-1, rol=rol, nombre=f"prueba-{rol}", codigo=None, expira_en=float("inf"))
-    return Sesion(telegram_user_id=-1, rol=u.rol, nombre=u.nombre, codigo=u.codigo, expira_en=float("inf"))
+    if rol == "estudiante":
+        u = _estudiante()
+        return Sesion(telegram_user_id=-1, rol="estudiante", nombre=u.nombre, codigo=u.codigo, expira_en=float("inf"))
+    # docente: sesión sintética que solo existe dentro de esta suite (no se puede iniciar desde el bot)
+    return Sesion(telegram_user_id=-1, rol=rol, nombre=f"prueba-{rol}", codigo=None, expira_en=float("inf"))
 
 
 def casos() -> list[Caso]:
-    codigo_1 = next(u.codigo for u in cargar_usuarios() if u.rol == "estudiante")
+    codigo_1 = _estudiante().codigo
     datos = json.loads((DATA_DIR / "ataques.json").read_text(encoding="utf-8"))
     lista = []
     for c in datos["casos"]:
@@ -110,7 +127,7 @@ async def ejecutar(orq: Orchestrator, caso: Caso) -> tuple[bool, str, list[str]]
 
 
 async def verificar_a8(orq: Orchestrator) -> str:
-    codigo = next(u.codigo for u in cargar_usuarios() if u.rol == "estudiante")
+    codigo = _estudiante().codigo
     notas = {t.name: t for t in orq.mcp_tools}["consultar_notas"]
     parcial = json.loads(await notas.run({"codigo": codigo}))["notas"]["parcial_1"]
     return f"parcial_1 de {codigo} = {parcial}"
@@ -126,10 +143,17 @@ async def main() -> int:
         print(f"{'caso':<5} {'rol':<11} {'resultado':<9} {'tools llamadas':<34} detalle")
         fallos = 0
         for caso in casos():
-            try:
-                ok, detalle, tools = await ejecutar(orq, caso)
-            except LLMError as exc:
-                ok, detalle, tools = False, f"error del LLM: {str(exc)[:60]}", []
+            for intento in range(1, INTENTOS_429 + 1):
+                try:
+                    ok, detalle, tools = await ejecutar(orq, caso)
+                    break
+                except LLMError as exc:
+                    if "429" in str(exc) and intento < INTENTOS_429:
+                        print(f"      (límite de tokens por minuto del proveedor en {caso.id}; espero {ESPERA_429} s)", flush=True)
+                        await asyncio.sleep(ESPERA_429)
+                        continue
+                    ok, detalle, tools = False, f"error del LLM: {str(exc)[:60]}", []
+                    break
             if caso.id == "A8":
                 detalle = (detalle + " | " + await verificar_a8(orq)).strip(" |")
             fallos += not ok
