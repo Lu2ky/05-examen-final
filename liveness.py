@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 
 import cv2
 import numpy as np
+from dotenv import find_dotenv, load_dotenv
 
 from faces import Rostros, mejor_similitud
 
@@ -42,12 +43,19 @@ def nuevo_reto(ahora: float | None = None) -> Reto:
     return Reto(tipo=secrets.choice(list(RETOS)), emitido_en=time.time() if ahora is None else ahora)
 
 
+def _env(nombre: str, defecto: str) -> str:
+    """Lee la variable al CREAR los umbrales (no al importar el módulo), tras cargar el .env."""
+    load_dotenv(find_dotenv(usecwd=True))
+    return os.getenv(nombre, defecto).strip()
+
+
 @dataclass(frozen=True)
 class Umbrales:
-    giro_minimo: float = float(os.getenv("LIVENESS_MIN_TURN", "0.12"))  # cambio de desplazamiento de la nariz
-    zoom_minimo: float = float(os.getenv("LIVENESS_MIN_ZOOM", "1.25"))  # crecimiento del ancho del rostro
-    consistencia: float = float(os.getenv("FACE_CONSISTENCY_THRESHOLD", "0.25"))  # mismo rostro entre frames
-    espejo: bool = os.getenv("LIVENESS_MIRROR", "0").strip() in {"1", "true", "yes"}  # cámara frontal en espejo
+    # default_factory: si se evaluaran al importar, el .env aún no estaría cargado y se ignoraría.
+    giro_minimo: float = field(default_factory=lambda: float(_env("LIVENESS_MIN_TURN", "0.12")))  # cambio de la nariz
+    zoom_minimo: float = field(default_factory=lambda: float(_env("LIVENESS_MIN_ZOOM", "1.25")))  # crecimiento del ancho
+    consistencia: float = field(default_factory=lambda: float(_env("FACE_CONSISTENCY_THRESHOLD", "0.25")))  # mismo rostro
+    espejo: bool = field(default_factory=lambda: _env("LIVENESS_MIRROR", "0") in {"1", "true", "yes"})  # cámara en espejo
 
 
 def evaluar_movimiento(tipo: str, desplazamientos: list[float], anchos: list[float], u: Umbrales) -> tuple[bool, str]:
