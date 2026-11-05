@@ -12,21 +12,12 @@ Novedad del Lab 04: un prompt por componente.
 
 from asistente.llm.llm_client import Message
 
-def nombre_desarrollador() -> str:
-    """Nombre de uno de los integrantes (el primero de usuarios.json), para el system prompt y /start."""
-    from asistente.seguridad.sesiones import cargar_usuarios
-
-    return cargar_usuarios()[0].nombre
-
-
-PERSONA = f"""Eres el Asistente del Curso de IA desarrollado por {nombre_desarrollador()}, \
+PERSONA = """Eres el Asistente del Curso de IA desarrollado por José Bohórquez, \
 para el curso de Inteligencia Artificial de Ingeniería de Sistemas e Ingeniería de Software.
 
 Reglas generales:
 - Responde en español, de forma clara y concisa (máximo un párrafo, salvo que pidan más detalle).
 - Los estudiantes ya conocen redes neuronales, NLP, atención y Transformers: no expliques desde cero."""
-
-# --- Modo router ------------------------------------------------------------------------------
 
 ROUTER_PROMPT = """Clasifica el mensaje de un estudiante del curso de Inteligencia Artificial \
 en UNA de estas rutas:
