@@ -50,19 +50,43 @@ Sin cambios respecto al Lab 04: `llm_client.py`, `mcp_client.py`, `embeddings.py
 
 ## 4. Tabla FAR/FRR y umbral
 
-**PENDIENTE.** Se genera con `umbral.py` (exige ≥10 pares genuinos y ≥20 impostores, fotos aportadas por humanos
-en `fotos/genuinos/<id>/` y `fotos/impostores/`):
+Generada con `uv run python umbral.py --umbrales 0.25 0.30 0.363 0.45 0.55`, con 17 fotos genuinas del
+integrante 1 (distintas de las 4 de enrolamiento) y 21 fotos de impostores, una por persona, del dataset público
+Labeled Faces in the Wild (LFW):
 
 ```
-uv run python umbral.py --umbrales 0.25 0.30 0.363 0.45 0.55
+Pares genuinos: 17 · pares impostores: 21
+
+  umbral      FRR      FAR
+   0.250     0.0%     0.0%
+   0.300     0.0%     0.0%
+   0.363     0.0%     0.0%
+   0.450     0.0%     0.0%
+   0.550     0.0%     0.0%
 ```
 
-Pegar aquí la tabla (`umbral · FRR · FAR`) y la justificación. Datos reales ya observados en el log de
-auditoría: en los intentos de login del integrante 1 la similitud con su propio rostro fue 0.78, 0.83, 0.84, 0.85
-y 0.80 (todos por encima del umbral por defecto 0.363). Esto no sustituye la tabla: son solo pares genuinos.
+Distribución de similitudes (cada foto comparada con los embeddings enrolados):
 
-Criterio de justificación (a confirmar con la tabla): el error grave es el **FAR** (aceptar a un impostor entrega
-notas ajenas); un FRR alto solo obliga a reintentar. Por eso se elige el umbral con FAR mínimo y, entre esos, el menor FRR.
+| Grupo | Fotos | Mínimo | Media | Máximo |
+|---|---|---|---|---|
+| Genuinas | 17 | 0.722 | 0.787 | 0.825 |
+| Impostores | 21 | −0.122 | 0.065 | 0.183 |
+
+El margen entre la peor genuina y el mejor impostor es 0.54, por eso todos los umbrales de la tabla dan 0 % y la
+tabla sola no sirve para elegir. En los intentos de login reales por video la similitud fue 0.78 a 0.85, consistente
+con las fotos.
+
+**Umbral elegido: 0.363** (valor por defecto de SFace, en `.env.example`). Justificación:
+- El error grave es el **FAR** (aceptar a un impostor entrega notas ajenas); un FRR alto solo obliga a reintentar.
+- El `umbral.py` propone 0.250 por una regla mecánica (el más bajo con FAR 0 %), pero no se adopta: un umbral bajo
+  deja poca distancia sobre el mayor impostor observado (0.183) y se vuelve frágil con impostores más parecidos.
+- 0.363 queda lejos de ambas distribuciones (0.18 por encima de los impostores y 0.36 por debajo de las genuinas) y
+  coincide con el valor publicado para SFace.
+
+**Límites de esta medición.** 0 % significa "ningún error observado", no tasa cero: con 17 y 21 pares no se
+puede afirmar un FAR menor a ~14 % (regla de tres: 3/21) ni un FRR menor a ~18 % (3/17), con 95 % de confianza. Los impostores de LFW son personas distintas y sin parecido a propósito (no
+hay gemelos ni familiares). Las fotos genuinas son de un solo día y de un solo usuario. Un atacante con rasgos
+parecidos podría acercarse al umbral.
 
 ## 5. Prueba de vida: reto y límites
 
@@ -163,8 +187,10 @@ umbral no existe (se toman los k más cercanos). En el rostro la *consulta* es e
 cuenta?". Un 1:N compararía contra todos, multiplicaría los falsos positivos con cada persona enrolada y dejaría que
 alguien entrara como otra persona.
 
-**3. Umbral.** Más grave: el FAR (entrega datos de otro). Tabla y elección: sección 4, **PENDIENTE**. Con dinero en
-juego se exigiría un FAR mucho menor aun a costa de más rechazos, un segundo factor y revisión humana.
+**3. Umbral.** Más grave: el FAR (entrega datos de otro). Con la tabla de la sección 4 (0 % y 0 % en todos los
+umbrales, margen de 0.54) la elección no depende del número exacto sino de la distancia a ambas distribuciones;
+se eligió 0.363 y se descartó el 0.250 que propone el script. Con dinero en juego se exigiría un FAR mucho menor
+aun a costa de más rechazos, un segundo factor y revisión humana.
 
 **4. Prueba de vida.** Qué detiene y qué no: sección 5. El reto es aleatorio para que un video grabado de antemano no
 sirva salvo que coincida; caduca para limitar la ventana de preparación; es de un solo uso para que un video capturado
@@ -245,4 +271,7 @@ Hacerlo solo después de grabar el video y de generar la tabla FAR/FRR.
   de Telegram. **PENDIENTE:** el integrante debe describir con sus palabras qué revisó, qué decisiones tomó y qué
   corrigió.
 - Dentro del producto, el LLM de respuestas es `openai/gpt-oss-120b` vía Groq. Las decisiones de acceso no las toma el LLM.
-- Las fotos y los videos de rostros los aportó el integrante; ninguna herramienta de IA generó imágenes ni videos.
+- Las fotos y los videos de rostros del integrante son suyos; ninguna herramienta de IA generó imágenes ni videos.
+- Las 21 fotos de impostores las descargó el asistente (Claude Code) a petición del integrante, desde una copia del
+  dataset público LFW en Hugging Face (`logasja/lfw`), una por persona, y se guardaron solo en `fotos/impostores/`
+  (fuera del repositorio).
