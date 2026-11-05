@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Any
 
-from llm_client import ToolDefinition
+from asistente.llm.llm_client import ToolDefinition
 
 
 class ToolExecutionError(Exception):

@@ -10,10 +10,10 @@ capacidad más.
 
 from dataclasses import dataclass
 
-from embeddings import Embedder
-from llm_client import LLMClient, LLMResponse, Message
-from prompts import build_rag_messages
-from vector_store import SearchResult, VectorStore
+from asistente.rag.embeddings import Embedder
+from asistente.llm.llm_client import LLMClient, LLMResponse, Message
+from asistente.llm.prompts import build_rag_messages
+from asistente.rag.vector_store import SearchResult, VectorStore
 
 NO_CONTEXT = "(No se encontraron fragmentos relevantes en los documentos del curso.)"
 # Solo un hecho booleano: existe información restringida relacionada. Nunca su contenido.

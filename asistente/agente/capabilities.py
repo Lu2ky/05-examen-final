@@ -13,8 +13,8 @@ import asyncio
 import sys
 from typing import Any
 
-from rag import CourseRAG, format_context
-from tools import Tool
+from asistente.rag.rag import CourseRAG, format_context
+from asistente.agente.tools import Tool
 
 
 def rag_tool(rag: CourseRAG, niveles: set[str]) -> Tool:
@@ -51,9 +51,9 @@ def rag_tool(rag: CourseRAG, niveles: set[str]) -> Tool:
 
 
 async def _demo(question: str) -> None:
-    from config import load_rag_settings
-    from embeddings import Embedder
-    from vector_store import VectorStore
+    from asistente.config import load_rag_settings
+    from asistente.rag.embeddings import Embedder
+    from asistente.rag.vector_store import VectorStore
 
     settings = load_rag_settings()
     store = VectorStore.load(settings.index_dir)

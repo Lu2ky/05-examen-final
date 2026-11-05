@@ -2,9 +2,9 @@
 
 import numpy as np
 
-import identidad
-import liveness
-from liveness import Umbrales, evaluar_movimiento, nuevo_reto
+from asistente.biometria import identidad
+from asistente.biometria import liveness
+from asistente.biometria.liveness import Umbrales, evaluar_movimiento, nuevo_reto
 
 U = Umbrales(espejo=False)
 

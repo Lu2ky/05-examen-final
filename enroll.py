@@ -15,8 +15,8 @@ import sys
 import cv2
 import numpy as np
 
-from config import DATA_DIR, FOTOS_DIR, ROSTROS_DIR
-from faces import ModelosFaltantes, Rostros
+from asistente.config import DATA_DIR, FOTOS_DIR, ROSTROS_DIR
+from asistente.biometria.faces import ModelosFaltantes, Rostros
 
 MIN_FOTOS, MAX_FOTOS = 3, 5
 

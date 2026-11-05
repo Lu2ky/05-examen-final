@@ -12,7 +12,7 @@ from pathlib import Path
 
 import numpy as np
 
-from documents import Chunk
+from asistente.rag.documents import Chunk
 
 VECTORS_FILE = "vectors.npy"
 CHUNKS_FILE = "chunks.json"

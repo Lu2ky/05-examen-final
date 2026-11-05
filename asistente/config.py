@@ -24,7 +24,7 @@ PROVIDER_BASE_URLS = {
     "deepseek": "https://api.deepseek.com/v1",
 }
 
-LAB_DIR = Path(__file__).resolve().parent
+LAB_DIR = Path(__file__).resolve().parents[1]  # raíz del proyecto (config.py está en asistente/)
 DATA_DIR = LAB_DIR / "data"  # publico/ y restringido/{estudiante,docente}/, usuarios.json, academico.json
 MODELOS_DIR = LAB_DIR / "modelos"  # modelos ONNX de rostro; no se versionan
 ROSTROS_DIR = LAB_DIR / "rostros"  # solo embeddings; no se versionan

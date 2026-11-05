@@ -12,11 +12,11 @@ from typing import Any
 
 from mcp import Client
 
-import auditoria
-from acceso import ROL_DOCENTE, ROL_ESTUDIANTE, tools_permitidas
-from mcp_client import read_resource_text
-from sesiones import Sesion
-from tools import LOCAL_TOOLS, Tool, ToolExecutionError
+from asistente.seguridad import auditoria
+from asistente.seguridad.acceso import ROL_DOCENTE, ROL_ESTUDIANTE, tools_permitidas
+from asistente.mcp_academico.mcp_client import read_resource_text
+from asistente.seguridad.sesiones import Sesion
+from asistente.agente.tools import LOCAL_TOOLS, Tool, ToolExecutionError
 
 SIN_PARAMETROS = {"type": "object", "properties": {}, "required": []}
 
