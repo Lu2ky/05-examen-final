@@ -16,6 +16,7 @@ por stdin/stdout (transporte stdio). Para exponerlo por HTTP (Streamable HTTP):
 """
 
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Annotated, Any, Literal
@@ -25,8 +26,22 @@ from mcp.server.mcpserver.exceptions import ToolError
 from mcp.types import ToolAnnotations
 from pydantic import Field
 
-DATA_FILE = Path(__file__).resolve().parents[2] / "data" / "academico.json"
+def _archivo_de_datos() -> Path:
+    """data/academico.json, o el archivo indicado con --datos <ruta> (los tests usan una copia temporal)."""
+    if "--datos" in sys.argv:
+        return Path(sys.argv[sys.argv.index("--datos") + 1]).resolve()
+    return Path(__file__).resolve().parents[2] / "data" / "academico.json"
+
+
+DATA_FILE = _archivo_de_datos()
 DATA = json.loads(DATA_FILE.read_text(encoding="utf-8"))
+
+
+def _guardar() -> None:
+    """Escribe el sistema académico en disco. Escritura atómica: nunca deja el JSON a medias."""
+    temporal = DATA_FILE.with_suffix(".json.tmp")
+    temporal.write_text(json.dumps(DATA, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    os.replace(temporal, DATA_FILE)
 ESTUDIANTES: dict[str, Any] = DATA["estudiantes"]
 
 # Solicitudes creadas en esta ejecución (en memoria: se pierden al cerrar el servidor).
@@ -120,7 +135,8 @@ def registrar_nota(
     codigo = codigo.strip()
     estudiante = buscar_estudiante(codigo)
     anterior = estudiante["notas"][evaluacion]
-    estudiante["notas"][evaluacion] = valor  # en memoria: se pierde al cerrar el servidor
+    estudiante["notas"][evaluacion] = valor
+    _guardar()  # persiste en academico.json: la nota sigue ahí tras reiniciar el servidor
     return {"codigo": codigo, "evaluacion": evaluacion, "anterior": anterior, "nueva": valor}
 
 

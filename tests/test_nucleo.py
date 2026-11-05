@@ -3,7 +3,10 @@
 import functools
 import inspect
 import json
+import shutil
+import tempfile
 from contextlib import AsyncExitStack
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -11,7 +14,7 @@ import pytest
 from asistente.seguridad import auditoria
 from asistente.seguridad.acceso import niveles_permitidos, tools_permitidas
 from asistente.agente.agent import Agent
-from asistente.config import load_rag_settings
+from asistente.config import DATA_DIR, load_rag_settings
 from asistente.rag.embeddings import Embedder
 from asistente.llm.llm_client import LLMResponse, ToolCall
 from asistente.mcp_academico.mcp_client import load_mcp_tools, open_client
@@ -40,17 +43,28 @@ class LLMGuionado:
         return LLMResponse("listo", "fake", "stop", 0, 0)
 
 
+ACADEMICO_TMP: Path | None = None  # copia de academico.json de la prueba en curso
+
+
 def con_orq(fn):
-    """Abre y cierra el servidor MCP dentro de la MISMA tarea que la prueba (requisito de anyio)."""
+    """Abre y cierra el servidor MCP dentro de la MISMA tarea que la prueba (requisito de anyio).
+
+    El servidor trabaja sobre una COPIA de academico.json: registrar_nota escribe en disco y las
+    pruebas no deben tocar el archivo real.
+    """
 
     @functools.wraps(fn)
     async def envoltura():
-        async with AsyncExitStack() as stack:
-            client = await open_client(stack)
-            s = load_rag_settings()
-            store = VectorStore.load(s.index_dir)
-            rag = CourseRAG(None, Embedder(store.embedding_model), store, s.top_k, s.min_score)
-            await fn(Orchestrator(None, rag, client, await load_mcp_tools(client)))
+        global ACADEMICO_TMP
+        with tempfile.TemporaryDirectory() as tmp:
+            ACADEMICO_TMP = Path(tmp) / "academico.json"
+            shutil.copy(DATA_DIR / "academico.json", ACADEMICO_TMP)
+            async with AsyncExitStack() as stack:
+                client = await open_client(stack, ACADEMICO_TMP)
+                s = load_rag_settings()
+                store = VectorStore.load(s.index_dir)
+                rag = CourseRAG(None, Embedder(store.embedding_model), store, s.top_k, s.min_score)
+                await fn(Orchestrator(None, rag, client, await load_mcp_tools(client)))
 
     envoltura.__signature__ = inspect.Signature()
     return envoltura
@@ -153,6 +167,31 @@ async def test_docente_escritura_requiere_confirmacion(orq):
     orq.llm = LLMGuionado([("registrar_nota", args)])
     ans = await orq.answer("registra", [], "agente", DOC, si)
     assert ans.steps[0].tool_runs[0].status == "ok"
+
+
+@con_orq
+async def test_registrar_nota_se_guarda_en_academico_json(orq):
+    """La nota confirmada queda en el archivo; una rechazada no lo toca. Se usa la copia temporal, no data/."""
+    real = (DATA_DIR / "academico.json").read_text(encoding="utf-8")
+
+    def nota_guardada() -> float | None:
+        return json.loads(ACADEMICO_TMP.read_text(encoding="utf-8"))["estudiantes"]["2026001"]["notas"]["parcial_2"]
+
+    inicial = nota_guardada()
+    nueva = 4.5 if inicial != 4.5 else 3.5  # un valor distinto del actual, sea cual sea el estado de los datos
+    args = {"codigo": "2026001", "evaluacion": "parcial_2", "valor": nueva}
+
+    orq.llm = LLMGuionado([("registrar_nota", args)])
+    await orq.answer("registra", [], "agente", DOC)  # sin confirmación: deniega
+    assert nota_guardada() == inicial
+
+    async def si(tool, arguments):
+        return True
+
+    orq.llm = LLMGuionado([("registrar_nota", args)])
+    await orq.answer("registra", [], "agente", DOC, si)
+    assert nota_guardada() == nueva
+    assert (DATA_DIR / "academico.json").read_text(encoding="utf-8") == real  # el archivo real no se tocó
 
 
 @con_orq

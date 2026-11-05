@@ -29,14 +29,16 @@ from asistente.agente.tools import Tool, ToolExecutionError
 SERVER_SCRIPT = Path(__file__).resolve().parent / "mcp_server.py"
 
 
-def server_parameters() -> StdioServerParameters:
+def server_parameters(datos: Path | None = None) -> StdioServerParameters:
     # El servidor se ejecuta con el mismo intérprete (el entorno de uv) que el asistente.
-    return StdioServerParameters(command=sys.executable, args=[str(SERVER_SCRIPT)])
+    # `datos`: otro archivo de sistema académico (los tests usan una copia para no tocar data/).
+    args = [str(SERVER_SCRIPT)] + (["--datos", str(datos)] if datos else [])
+    return StdioServerParameters(command=sys.executable, args=args)
 
 
-async def open_client(stack: AsyncExitStack) -> Client:
+async def open_client(stack: AsyncExitStack, datos: Path | None = None) -> Client:
     """Lanza el servidor y se conecta. La conexión se cierra cuando se cierra `stack`."""
-    return await stack.enter_async_context(Client(server_parameters()))
+    return await stack.enter_async_context(Client(server_parameters(datos)))
 
 
 def result_to_text(result: CallToolResult) -> str:
