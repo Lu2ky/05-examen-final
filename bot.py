@@ -205,7 +205,10 @@ class AsistenteTelegram:
                 return False
             finally:
                 self.confirmaciones.pop(token, None)
-                await mensaje.edit_reply_markup(None)
+                try:
+                    await mensaje.edit_reply_markup(None)
+                except Exception:  # quitar los botones es cosmético: no debe perder la decisión del usuario
+                    log.warning("no se pudieron quitar los botones de confirmación", exc_info=True)
 
         return confirmar
 
