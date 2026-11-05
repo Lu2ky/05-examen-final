@@ -7,6 +7,7 @@ los niveles del RAG y las tools; el LLM solo ve lo permitido. No importa nada de
   modo "router": una clasificación elige directa / documentos / acciones
 """
 
+import asyncio
 from contextlib import AsyncExitStack
 from dataclasses import dataclass, field
 from typing import Literal
@@ -82,13 +83,13 @@ class Orchestrator:
             return self._from_agent(result, mode, offered)
 
         niveles = niveles_permitidos(sesion.rol if sesion else "publico")
-        routing = route(self.llm, question)
+        routing = await asyncio.to_thread(route, self.llm, question)
         ruta = routing.decision.ruta
         if ruta == "directa":
-            response = self.llm.chat(build_direct_messages(history, question))
+            response = await asyncio.to_thread(self.llm.chat, build_direct_messages(history, question))
             answer = OrchestratorAnswer(response.text, mode, responses=[response], tools_offered=offered)
         elif ruta == "documentos":
-            rag_answer = self.rag.answer(question, history, niveles)
+            rag_answer = await asyncio.to_thread(self.rag.answer, question, history, niveles)
             sources = sorted({r.chunk.source for r in rag_answer.sources})
             answer = OrchestratorAnswer(
                 rag_answer.text, mode, sources=sources, responses=[rag_answer.response], tools_offered=offered

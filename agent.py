@@ -14,6 +14,7 @@ El límite existe porque el ciclo lo controla el modelo: sin él, un error o una
 decisión podría repetirse indefinidamente (y cada vuelta cuesta tokens).
 """
 
+import asyncio
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any, Literal
@@ -81,7 +82,8 @@ class Agent:
         steps: list[AgentStep] = []
 
         for _ in range(self.max_steps):
-            response = self.llm.chat(messages, tools=definitions)
+            # El cliente del LLM es síncrono: en un hilo para no congelar el bucle (otros usuarios, botones).
+            response = await asyncio.to_thread(self.llm.chat, messages, tools=definitions)
             if not response.tool_calls:
                 steps.append(AgentStep(response))
                 return AgentAnswer(response.text, steps, messages, stopped_by_limit=False)
@@ -95,7 +97,7 @@ class Agent:
 
         # Se agotaron los pasos: una última llamada sin tools fuerza una respuesta con lo que hay.
         messages.append({"role": "user", "content": LIMIT_MESSAGE})
-        final = self.llm.chat(messages, tools=definitions, allow_tools=False)
+        final = await asyncio.to_thread(self.llm.chat, messages, tools=definitions, allow_tools=False)
         steps.append(AgentStep(final))
         return AgentAnswer(final.text, steps, messages, stopped_by_limit=True)
 
