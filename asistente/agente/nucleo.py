@@ -6,10 +6,10 @@ La identidad (rol, nombre, código) viene SIEMPRE de la sesión; el texto de la 
 cambia quién es el usuario ni qué puede ver.
 """
 
-from agent import ConfirmFn
-from llm_client import Message
-from orchestrator import Mode, Orchestrator, OrchestratorAnswer, denegar_acciones
-from sesiones import Sesion
+from asistente.agente.agent import ConfirmFn
+from asistente.llm.llm_client import Message
+from asistente.agente.orchestrator import Mode, Orchestrator, OrchestratorAnswer, denegar_acciones
+from asistente.seguridad.sesiones import Sesion
 
 
 async def responder_con_traza(

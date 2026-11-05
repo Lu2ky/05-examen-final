@@ -10,7 +10,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from config import MODELOS_DIR
+from asistente.config import MODELOS_DIR
 
 YUNET = "face_detection_yunet_2023mar.onnx"
 SFACE = "face_recognition_sface_2021dec.onnx"

@@ -14,20 +14,20 @@ from typing import Literal
 
 from mcp import Client
 
-from acceso import niveles_permitidos
-from agent import MAX_STEPS, Agent, AgentAnswer, AgentStep, ConfirmFn
-from capabilities import rag_tool
-from config import load_rag_settings, load_settings
-from embeddings import Embedder
-from herramientas import herramientas_para
-from llm_client import LLMClient, LLMResponse, Message
-from mcp_client import load_mcp_tools, open_client
-from prompts import build_direct_messages
-from rag import CourseRAG
-from router import RouterResult, route
-from sesiones import Sesion
-from tools import Tool
-from vector_store import VectorStore
+from asistente.seguridad.acceso import niveles_permitidos
+from asistente.agente.agent import MAX_STEPS, Agent, AgentAnswer, AgentStep, ConfirmFn
+from asistente.agente.capabilities import rag_tool
+from asistente.config import load_rag_settings, load_settings
+from asistente.rag.embeddings import Embedder
+from asistente.agente.herramientas import herramientas_para
+from asistente.llm.llm_client import LLMClient, LLMResponse, Message
+from asistente.mcp_academico.mcp_client import load_mcp_tools, open_client
+from asistente.llm.prompts import build_direct_messages
+from asistente.rag.rag import CourseRAG
+from asistente.agente.router import RouterResult, route
+from asistente.seguridad.sesiones import Sesion
+from asistente.agente.tools import Tool
+from asistente.rag.vector_store import VectorStore
 
 Mode = Literal["router", "agente"]
 

@@ -14,7 +14,7 @@ from typing import Any
 
 import openai
 
-from config import Settings
+from asistente.config import Settings
 
 # Un mensaje es un diccionario {"role": ..., "content": ...}. Desde el Lab 03 hay dos formas nuevas:
 #   - {"role": "assistant", "content": ..., "tool_calls": [...]}  el modelo pide tools
@@ -123,7 +123,7 @@ class LLMClient:
 
 if __name__ == "__main__":
     # Prueba de humo: una sola llamada, sin interfaz ni historial.
-    from config import load_settings
+    from asistente.config import load_settings
 
     client = LLMClient(load_settings())
     response = client.chat(

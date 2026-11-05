@@ -10,11 +10,11 @@ Novedad del Lab 04: un prompt por componente.
   - AGENT_SYSTEM_PROMPT:  decide qué capacidades usar y en qué orden (modo agente y ruta "acciones")
 """
 
-from llm_client import Message
+from asistente.llm.llm_client import Message
 
 def nombre_desarrollador() -> str:
     """Nombre de uno de los integrantes (el primero de usuarios.json), para el system prompt y /start."""
-    from sesiones import cargar_usuarios
+    from asistente.seguridad.sesiones import cargar_usuarios
 
     return cargar_usuarios()[0].nombre
 

@@ -19,9 +19,9 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-from llm_client import LLMClient, LLMResponse, Message, ToolCall
-from prompts import build_agent_messages
-from tools import Tool
+from asistente.llm.llm_client import LLMClient, LLMResponse, Message, ToolCall
+from asistente.llm.prompts import build_agent_messages
+from asistente.agente.tools import Tool
 
 MAX_STEPS = 5
 

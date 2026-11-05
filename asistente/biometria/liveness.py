@@ -14,7 +14,7 @@ import cv2
 import numpy as np
 from dotenv import find_dotenv, load_dotenv
 
-from faces import Rostros, mejor_similitud
+from asistente.biometria.faces import Rostros, mejor_similitud
 
 RETOS = {
     "izquierda": "Gira la cabeza a tu IZQUIERDA",

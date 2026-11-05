@@ -30,7 +30,7 @@ class Embedder:
 
 
 if __name__ == "__main__":
-    from config import load_rag_settings
+    from asistente.config import load_rag_settings
 
     embedder = Embedder(load_rag_settings().embedding_model)
     query = "¿Qué pasa si entrego tarde un laboratorio?"

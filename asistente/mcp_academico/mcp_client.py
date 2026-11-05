@@ -24,7 +24,7 @@ from mcp import Client, StdioServerParameters
 from mcp.types import CallToolResult
 from mcp.types import Tool as MCPTool
 
-from tools import Tool, ToolExecutionError
+from asistente.agente.tools import Tool, ToolExecutionError
 
 SERVER_SCRIPT = Path(__file__).resolve().parent / "mcp_server.py"
 

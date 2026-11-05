@@ -10,7 +10,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
-from config import DATA_DIR
+from asistente.config import DATA_DIR
 
 
 @dataclass(frozen=True)

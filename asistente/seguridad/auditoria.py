@@ -9,7 +9,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from config import AUDITORIA_FILE
+from asistente.config import AUDITORIA_FILE
 
 _ESCALARES = (str, int, float, bool, type(None))
 

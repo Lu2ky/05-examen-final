@@ -19,6 +19,22 @@ Código: https://github.com/Lu2ky/05-examen-final (rama `master`).
 El repositorio no contiene `.env`, token del bot, API keys, `index/`, `modelos/`, `rostros/`, fotos ni videos de
 rostros. Todo eso está en `.gitignore`, y en cada rama se revisó que ningún diff incluyera secretos ni esos archivos.
 
+Estructura del código. Los módulos viven en el paquete `asistente/`, y en la raíz quedan solo los scripts que se
+ejecutan, junto a `data/` y la documentación:
+
+```
+asistente/
+  config.py
+  llm/             llm_client, prompts
+  rag/             documents, embeddings, vector_store, rag
+  agente/          agent, router, tools, capabilities, herramientas, orchestrator, nucleo
+  mcp_academico/   mcp_client, mcp_server
+  seguridad/       acceso, sesiones, auditoria
+  biometria/       faces, liveness, identidad
+  canal/           bot
+bot.py  ingest.py  enroll.py  umbral.py  pruebas_seguridad.py     scripts de la raíz
+```
+
 Para reproducirlo: `uv sync`, copiar `.env.example` a `.env`, descargar los modelos ONNX (YuNet y SFace) a
 `modelos/`, ejecutar `uv run python ingest.py`, enrolar con `enroll.py` y arrancar con `uv run python bot.py`.
 
@@ -26,27 +42,28 @@ Para reproducirlo: `uv sync`, copiar `.env.example` a `.env`, descargar los mode
 
 ```mermaid
 flowchart TD
-    U[Usuario en Telegram] -->|texto, /login, video-nota, botones| B[bot.py<br/>adaptador de Telegram]
-    B -->|/login: reto aleatorio| L[liveness.py<br/>reto, caducidad, un solo uso]
-    B -->|video-nota| I[identidad.py<br/>verificación 1:1]
-    I --> F[faces.py<br/>YuNet detecta, SFace embebe]
+    U[Usuario en Telegram] -->|texto, /login, video-nota, botones| B[canal/bot.py<br/>adaptador de Telegram]
+    B -->|/login: reto aleatorio| L[biometria/liveness.py<br/>reto, caducidad, un solo uso]
+    B -->|video-nota| I[biometria/identidad.py<br/>verificación 1:1]
+    I --> F[biometria/faces.py<br/>YuNet detecta, SFace embebe]
     F --> E[(rostros/id.npy<br/>embeddings locales)]
-    I -->|ok| S[sesiones.py<br/>SesionStore: rol, nombre y código<br/>desde usuarios.json]
+    I -->|ok| S[seguridad/sesiones.py<br/>SesionStore: rol, nombre y código<br/>desde usuarios.json]
     I -->|rechazo| A[(auditoria.jsonl)]
-    B -->|pregunta + sesión| N[nucleo.responder]
-    N --> O[orchestrator.py<br/>route, agent, rag]
-    O --> AC[acceso.py<br/>niveles y tools por rol]
-    AC -->|niveles permitidos| R[rag.py + vector_store.py<br/>filtro ANTES del top-k]
-    AC -->|solo las tools del rol| H[herramientas.py<br/>inyecta el código de la sesión<br/>y re-verifica el rol al ejecutar]
-    H --> M[mcp_server.py por stdio<br/>notas, solicitudes, calendario]
-    O --> LLM[llm_client.py<br/>proveedor del LLM]
+    B -->|pregunta + sesión| N[agente/nucleo.responder]
+    N --> O[agente/orchestrator.py<br/>route, agent, rag]
+    O --> AC[seguridad/acceso.py<br/>niveles y tools por rol]
+    AC -->|niveles permitidos| R[rag/rag.py + rag/vector_store.py<br/>filtro ANTES del top-k]
+    AC -->|solo las tools del rol| H[agente/herramientas.py<br/>inyecta el código de la sesión<br/>y re-verifica el rol al ejecutar]
+    H --> M[mcp_academico/mcp_server.py por stdio<br/>notas, solicitudes, calendario]
+    O --> LLM[llm/llm_client.py<br/>proveedor del LLM]
     H -->|escritura| C{Confirmar con botones}
     C -->|Sí| M
     H -->|denegado / restringido| A
     S -.->|identidad e historial por rol| N
 ```
 
-Los componentes nuevos respecto al Lab 04 son `bot.py`, `nucleo.py`, `sesiones.py`, `acceso.py`, `herramientas.py`,
+Los nombres de módulo de esta sección y de la 8 se refieren a los archivos dentro de `asistente/` (por ejemplo
+`bot.py` está en `asistente/canal/`). Los componentes nuevos respecto al Lab 04 son `bot.py`, `nucleo.py`, `sesiones.py`, `acceso.py`, `herramientas.py`,
 `auditoria.py`, `faces.py`, `liveness.py`, `identidad.py`, `enroll.py`, `umbral.py` y `pruebas_seguridad.py`.
 `llm_client.py`, `mcp_client.py`, `embeddings.py`, `ingest.py` y `tools.py` quedaron igual.
 

@@ -8,9 +8,9 @@ import time
 
 import numpy as np
 
-import liveness
-from config import ROSTROS_DIR, load_access_settings
-from faces import Rostros, mejor_similitud
+from asistente.biometria import liveness
+from asistente.config import ROSTROS_DIR, load_access_settings
+from asistente.biometria.faces import Rostros, mejor_similitud
 
 _rostros: Rostros | None = None
 

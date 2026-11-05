@@ -8,17 +8,17 @@ from contextlib import AsyncExitStack
 import numpy as np
 import pytest
 
-import auditoria
-from acceso import niveles_permitidos, tools_permitidas
-from agent import Agent
-from config import load_rag_settings
-from embeddings import Embedder
-from llm_client import LLMResponse, ToolCall
-from mcp_client import load_mcp_tools, open_client
-from orchestrator import Orchestrator, denegar_acciones
-from rag import CourseRAG
-from sesiones import Sesion, SesionStore, Usuario
-from vector_store import VectorStore
+from asistente.seguridad import auditoria
+from asistente.seguridad.acceso import niveles_permitidos, tools_permitidas
+from asistente.agente.agent import Agent
+from asistente.config import load_rag_settings
+from asistente.rag.embeddings import Embedder
+from asistente.llm.llm_client import LLMResponse, ToolCall
+from asistente.mcp_academico.mcp_client import load_mcp_tools, open_client
+from asistente.agente.orchestrator import Orchestrator, denegar_acciones
+from asistente.rag.rag import CourseRAG
+from asistente.seguridad.sesiones import Sesion, SesionStore, Usuario
+from asistente.rag.vector_store import VectorStore
 
 EST = Sesion(1, "estudiante", "Estudiante Prueba", "2026001", 9e12)
 DOC = Sesion(2, "docente", "Docente Prueba", None, 9e12)
@@ -158,7 +158,7 @@ async def test_docente_escritura_requiere_confirmacion(orq):
 @con_orq
 async def test_verificacion_al_ejecutar_aunque_la_tool_estuviera_en_la_lista(orq):
     """Defensa en profundidad: una tool de docente envuelta para un estudiante se niega al ejecutarse."""
-    from herramientas import con_verificacion
+    from asistente.agente.herramientas import con_verificacion
 
     crudo = {t.name: t for t in orq.mcp_tools}["consultar_notas"]
     tool = con_verificacion(crudo, EST, "estudiante")

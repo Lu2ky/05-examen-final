@@ -25,7 +25,7 @@ from mcp.server.mcpserver.exceptions import ToolError
 from mcp.types import ToolAnnotations
 from pydantic import Field
 
-DATA_FILE = Path(__file__).resolve().parent / "data" / "academico.json"
+DATA_FILE = Path(__file__).resolve().parents[2] / "data" / "academico.json"
 DATA = json.loads(DATA_FILE.read_text(encoding="utf-8"))
 ESTUDIANTES: dict[str, Any] = DATA["estudiantes"]
 

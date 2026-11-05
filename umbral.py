@@ -16,9 +16,9 @@ import sys
 import cv2
 import numpy as np
 
-from config import FOTOS_DIR, ROSTROS_DIR
-from faces import Rostros, mejor_similitud
-from sesiones import cargar_usuarios
+from asistente.config import FOTOS_DIR, ROSTROS_DIR
+from asistente.biometria.faces import Rostros, mejor_similitud
+from asistente.seguridad.sesiones import cargar_usuarios
 
 MIN_GENUINOS, MIN_IMPOSTORES = 10, 20
 EXTENSIONES = ("*.jpg", "*.jpeg", "*.png")

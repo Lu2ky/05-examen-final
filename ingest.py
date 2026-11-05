@@ -10,10 +10,10 @@ Uso:
 import sys
 import time
 
-from config import load_rag_settings
-from documents import chunk_documents, load_documents
-from embeddings import Embedder
-from vector_store import VectorStore
+from asistente.config import load_rag_settings
+from asistente.rag.documents import chunk_documents, load_documents
+from asistente.rag.embeddings import Embedder
+from asistente.rag.vector_store import VectorStore
 
 
 def main() -> None:

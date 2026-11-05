@@ -14,8 +14,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ValidationError
 
-from llm_client import LLMClient, LLMResponse
-from prompts import build_router_messages
+from asistente.llm.llm_client import LLMClient, LLMResponse
+from asistente.llm.prompts import build_router_messages
 
 Route = Literal["directa", "documentos", "acciones"]
 
@@ -47,7 +47,7 @@ def route(llm: LLMClient, question: str) -> RouterResult:
 
 
 if __name__ == "__main__":
-    from config import load_settings
+    from asistente.config import load_settings
 
     question = " ".join(sys.argv[1:]) or input("Pregunta: ")
     result = route(LLMClient(load_settings()), question)
