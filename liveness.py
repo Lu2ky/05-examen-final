@@ -61,8 +61,10 @@ def evaluar_movimiento(tipo: str, desplazamientos: list[float], anchos: list[flo
     desde = float(np.median(desplazamientos[:base]))
     # Sin espejo: al girar a TU izquierda la nariz se desplaza hacia la derecha de la imagen (+).
     signo = 1.0 if (tipo == "izquierda") != u.espejo else -1.0
-    delta = (max(desplazamientos) - desde) if signo > 0 else (desde - min(desplazamientos))
-    return (delta >= u.giro_minimo, f"giro={delta:.2f}")
+    hacia_mas, hacia_menos = max(desplazamientos) - desde, desde - min(desplazamientos)
+    delta, opuesto = (hacia_mas, hacia_menos) if signo > 0 else (hacia_menos, hacia_mas)
+    # "opuesto" solo sirve para diagnosticar si la cámara graba en espejo (LIVENESS_MIRROR).
+    return (delta >= u.giro_minimo, f"giro={delta:.2f},opuesto={opuesto:.2f}")
 
 
 def analizar_video(
