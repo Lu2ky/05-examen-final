@@ -10,7 +10,10 @@ import asyncio
 import logging
 import os
 import secrets
+import shutil
 import tempfile
+import time
+from pathlib import Path
 from contextlib import AsyncExitStack
 from dataclasses import dataclass, field
 from typing import Any
@@ -131,6 +134,11 @@ class AsistenteTelegram:
             await archivo.download_to_drive(ruta)
             # El análisis es CPU: fuera del bucle de eventos para no congelar el bot.
             ok, sim, motivo = await asyncio.to_thread(identidad.verificar_vida, uid, ruta, reto)
+            if not ok and os.getenv("LIVENESS_DEBUG") == "1" and motivo.startswith("sin_movimiento"):
+                # Solo para calibrar: copia local (carpeta ignorada por git) del video rechazado.
+                destino = Path("videos") / f"rechazado_{reto.tipo}_{int(time.time())}.mp4"
+                destino.parent.mkdir(exist_ok=True)
+                shutil.copy(ruta, destino)
         if not ok:
             await self._fallo(update, uid, sim, motivo)
             return
