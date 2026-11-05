@@ -20,6 +20,9 @@ class ModelosFaltantes(FileNotFoundError):
     pass
 
 
+LADO_MAX_DETECCION = 640  # píxeles del lado mayor con el que se detecta
+
+
 @dataclass(frozen=True)
 class Rostro:
     fila: np.ndarray  # fila YuNet: x, y, w, h, 5 landmarks (x, y), score
@@ -67,9 +70,18 @@ class Rostros:
 
     def detectar(self, imagen: np.ndarray) -> list[Rostro]:
         alto, ancho = imagen.shape[:2]
-        self._detector.setInputSize((ancho, alto))
+        # YuNet falla con imágenes grandes (fotos de celular de 3000 px): se detecta en reducido
+        # y las coordenadas se devuelven en la imagen original.
+        factor = min(1.0, LADO_MAX_DETECCION / max(alto, ancho))
+        if factor < 1.0:
+            imagen = cv2.resize(imagen, (round(ancho * factor), round(alto * factor)), interpolation=cv2.INTER_AREA)
+        self._detector.setInputSize((imagen.shape[1], imagen.shape[0]))
         _, filas = self._detector.detect(imagen)
-        return [Rostro(f) for f in filas] if filas is not None else []
+        if filas is None:
+            return []
+        filas = filas.copy()
+        filas[:, :14] /= factor  # x, y, w, h y 5 landmarks; la columna 14 es el score
+        return [Rostro(f) for f in filas]
 
     def embedding(self, imagen: np.ndarray, rostro: Rostro) -> np.ndarray:
         alineado = self._reconocedor.alignCrop(imagen, rostro.fila)
