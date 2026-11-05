@@ -47,7 +47,9 @@ class Caso:
 def sesion_de(rol: str) -> Sesion | None:
     if rol == "publico":
         return None
-    u = next(u for u in cargar_usuarios() if u.rol == rol)
+    u = next((u for u in cargar_usuarios() if u.rol == rol), None)
+    if u is None:  # p. ej. no hay docente en usuarios.json: sesión sintética, solo existe en esta suite
+        return Sesion(telegram_user_id=-1, rol=rol, nombre=f"prueba-{rol}", codigo=None, expira_en=float("inf"))
     return Sesion(telegram_user_id=-1, rol=u.rol, nombre=u.nombre, codigo=u.codigo, expira_en=float("inf"))
 
 
