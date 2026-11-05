@@ -1,0 +1,21 @@
+# Secretos
+.env
+
+# Biometría y datos sensibles (nunca al repositorio)
+modelos/
+rostros/
+fotos/
+videos/
+auditoria*.jsonl
+index/
+
+# Entorno de Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
