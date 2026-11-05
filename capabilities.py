@@ -28,7 +28,8 @@ def rag_tool(rag: CourseRAG, niveles: set[str]) -> Tool:
         consulta = str(arguments.get("consulta", "")).strip()
         if not consulta:
             raise ValueError("falta la consulta")
-        resultados, oculto = rag.retrieve(consulta, niveles)
+        # El embedding de la consulta es CPU: en un hilo para no bloquear el bucle.
+        resultados, oculto = await asyncio.to_thread(rag.retrieve, consulta, niveles)
         return format_context(resultados, oculto)
 
     return Tool(
