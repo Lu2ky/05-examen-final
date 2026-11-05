@@ -53,3 +53,12 @@ def test_sin_enrolamiento_se_rechaza():
     r = nuevo_reto()
     ok, sim, motivo = identidad.verificar_vida(999_999_999, "/no/existe.mp4", r)
     assert (ok, motivo) == (False, "sin_enrolamiento")
+
+
+def test_umbrales_leen_el_entorno_al_crearse_no_al_importar(monkeypatch):
+    monkeypatch.setenv("LIVENESS_MIRROR", "1")
+    monkeypatch.setenv("LIVENESS_MIN_TURN", "0.2")
+    u = Umbrales()
+    assert u.espejo is True and u.giro_minimo == 0.2
+    monkeypatch.setenv("LIVENESS_MIRROR", "0")
+    assert Umbrales().espejo is False
